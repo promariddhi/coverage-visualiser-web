@@ -21,10 +21,15 @@ export function nextStep(algorithm, simStore, UIStore) {
     "Bee Colony": beeColony,
     "Greedy Coverage": greedyCoverage,
   };
-  console.log(simStore.drones.length);
   const newDronesState = Array.from(
     { length: simStore.drones.length },
-    (_, i) => algos[algorithm](simStore.drones[i], simStore, UIStore)
+    (_, i) =>
+      algos[algorithm](
+        simStore.drones[i],
+        simStore,
+        UIStore.params[algorithm],
+        UIStore.mapData
+      )
   );
   simStore.setDrones(newDronesState);
 }
@@ -49,7 +54,7 @@ export function spawnDrones(droneCount) {
   return Array.from({ length: droneCount }, () =>
     drone(
       CANVAS_SIZE / 2 + Math.random() * 30 - 15, // x around center
-      CANVAS_SIZE - 30 + Math.random() * 30 - 15 // y near bottom
+      CANVAS_SIZE / 2 + Math.random() * 30 - 15 // y near bottom
     )
   );
 }

@@ -40,3 +40,31 @@ export function doubleMapResolution(map) {
 
   return higherResolutionMap;
 }
+
+export function markHeatmap(heatmap, x, y, radius = 1) {
+  const height = heatmap.length;
+  const width = heatmap[0].length;
+
+  const [cellX, cellY] = positionToCell(x, y); // FIXED: explicit names
+
+  const newHeatmap = heatmap.map((row) => [...row]);
+
+  for (
+    let i = Math.max(0, cellY - radius);
+    i <= Math.min(height - 1, cellY + radius);
+    i++
+  ) {
+    for (
+      let j = Math.max(0, cellX - radius);
+      j <= Math.min(width - 1, cellX + radius);
+      j++
+    ) {
+      const dx = j - cellX;
+      const dy = i - cellY;
+      if (Math.hypot(dx, dy) <= radius) {
+        newHeatmap[i][j] = 1;
+      }
+    }
+  }
+  return newHeatmap;
+}

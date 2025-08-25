@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "components/ui/card";
 import { Button } from "components/ui/button";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "components/ui/sheet";
 
-import useUIStore from "../hooks/UseUIStore";
 import presetMaps from "../lib/PresetMaps";
 import ControlPanel from "../components/custom/ControlPanel";
 import MapEditor from "../components/custom/MapEditor";
@@ -13,6 +12,7 @@ import DroneLayer from "../components/custom/DroneLayer";
 import MapLayer from "../components/custom/MapLayer";
 
 import { useSimStore, nextStep } from "../hooks/useSimStore";
+import { useUIStore, updateParams } from "../hooks/UseUIStore";
 
 // Main App Component
 const App = () => {
@@ -43,15 +43,38 @@ const App = () => {
     UIStore.setMapData(mapData);
   };
 
+  const iteration = useRef(0); // local counter
+
   useEffect(() => {
-    if (!UIStore.isRunning) return;
+    if (!UIStore.isRunning) {
+      if (!UIStore.simLocked) iteration.current = 0;
+      return;
+    }
 
     const interval = setInterval(() => {
+      iteration.current++;
+      console.log(iteration.current);
+
+      if (UIStore.algorithm === "Bacterial Foraging") {
+        updateParams(
+          "Bacterial Foraging",
+          UIStore.setParams,
+          "iteration",
+          iteration.current
+        );
+      }
       nextStep(UIStore.algorithm, simStore, UIStore);
     }, 50);
 
     return () => clearInterval(interval);
-  }, [UIStore.isRunning, simStore, UIStore.algorithm, UIStore]);
+  }, [
+    UIStore.isRunning,
+    UIStore.algorithm,
+    simStore,
+    UIStore.setParams,
+    UIStore,
+    iteration,
+  ]);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -89,8 +112,8 @@ const App = () => {
             </h1>
           </div>
           <ControlPanel
-            store={UIStore}
-            simState={simStore}
+            UIStore={UIStore}
+            simStore={simStore}
             onLoadPreset={handleLoadPreset}
             onSaveMap={handleSaveMap}
             onLoadMap={handleLoadMap}

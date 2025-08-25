@@ -6,19 +6,19 @@ import {
   normalize,
   clamp,
   doubleMapResolution,
+  markHeatmap,
 } from "./utils";
 
-const greedyCoverage = (drone, simStore, UIStore) => {
+const greedyCoverage = (drone, simStore, params, map) => {
   const allDrones = simStore.drones;
   let { x, y, xVel, yVel } = drone;
-  const mapData = doubleMapResolution(UIStore.mapData);
-  // FIXED: nearestUnvisited_h now works in correct units
+  const mapData = doubleMapResolution(map);
   const target = nearestUnvisited_h(
     x,
     y,
     simStore.heatMap,
     mapData,
-    UIStore.sensingRadius
+    params.sensingRadius
   );
 
   if (target != null) {
@@ -27,8 +27,8 @@ const greedyCoverage = (drone, simStore, UIStore) => {
     const d = Math.hypot(dx, dy);
     if (d > 1e-6) {
       const [nx, ny] = [dx / d, dy / d];
-      xVel = nx * UIStore.speed;
-      yVel = ny * UIStore.speed;
+      xVel = nx * params.speed;
+      yVel = ny * params.speed;
     }
   } else {
     if (Math.random() < 0.05) {
@@ -39,10 +39,10 @@ const greedyCoverage = (drone, simStore, UIStore) => {
     yVel *= 0.9;
 
     const speed = vecLen(xVel, yVel);
-    if (speed > UIStore.speed) {
+    if (speed > params.speed) {
       const [nx, ny] = normalize(xVel, yVel);
-      xVel = nx * UIStore.speed;
-      yVel = ny * UIStore.speed;
+      xVel = nx * params.speed;
+      yVel = ny * params.speed;
     }
   }
 
@@ -55,20 +55,32 @@ const greedyCoverage = (drone, simStore, UIStore) => {
   y += vy;
 
   // WALL: stop at walls
+  // WALL COLLISION CHECK (with sliding)
   const [cellX, cellY] = positionToCell(x, y);
+
   if (mapData?.[cellY]?.[cellX] === 1) {
-    // undo movement if inside wall
-    x -= xVel + vx;
-    y -= yVel + vy;
-    xVel = 0;
-    yVel = 0;
+    // Check if horizontal move caused collision
+    const [prevCellX, prevCellY] = positionToCell(x - xVel, y);
+    if (mapData?.[prevCellY]?.[prevCellX] !== 1) {
+      // Only X movement caused collision → stop X
+      x -= xVel;
+      xVel = 0;
+    }
+
+    // Check if vertical move caused collision
+    const [prevCellX2, prevCellY2] = positionToCell(x, y - yVel);
+    if (mapData?.[prevCellY2]?.[prevCellX2] !== 1) {
+      // Only Y movement caused collision → stop Y
+      y -= yVel;
+      yVel = 0;
+    }
   }
 
   x = clamp(x, 0, GRID_SIZE * CELL_SIZE - 1); // FIXED: clamp to canvas pixels
   y = clamp(y, 0, GRID_SIZE * CELL_SIZE - 1);
 
   // FIXED: use prev instead of stale closure
-  simStore.setHeatmap((prev) => markHeatmap_h(prev, x, y));
+  simStore.setHeatmap((prev) => markHeatmap(prev, x, y));
 
   return { ...drone, x, y, xVel, yVel };
 };
@@ -133,34 +145,6 @@ function nearestUnvisited_h(x, y, heatMap, mapData, maxSearchRadius = null) {
     if (foundAny) return best;
   }
   return best;
-}
-
-function markHeatmap_h(heatmap, x, y, radius = 1) {
-  const height = heatmap.length;
-  const width = heatmap[0].length;
-
-  const [cellX, cellY] = positionToCell(x, y); // FIXED: explicit names
-
-  const newHeatmap = heatmap.map((row) => [...row]);
-
-  for (
-    let i = Math.max(0, cellY - radius);
-    i <= Math.min(height - 1, cellY + radius);
-    i++
-  ) {
-    for (
-      let j = Math.max(0, cellX - radius);
-      j <= Math.min(width - 1, cellX + radius);
-      j++
-    ) {
-      const dx = j - cellX;
-      const dy = i - cellY;
-      if (Math.hypot(dx, dy) <= radius) {
-        newHeatmap[i][j] = 1;
-      }
-    }
-  }
-  return newHeatmap;
 }
 
 function avoidOtherDrones_h(

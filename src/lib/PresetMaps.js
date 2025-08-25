@@ -26,8 +26,7 @@ const presetMaps = {
         Array(MAP_GRID_SIZE)
           .fill()
           .map((_, j) => {
-            if (i === 0 || i === 19 || j === 0 || j === 19) return 1;
-            if (i === 5 && j > 2 && j < 17) return 1;
+            if (i === 5 && j > 2 && j < 22) return 1;
             if (i === 10 && j > 3 && j < 16) return 1;
             if (i === 15 && j > 2 && j < 17) return 1;
             if (j === 7 && i > 5 && i < 10) return 1;

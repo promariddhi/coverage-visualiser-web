@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GRID_SIZE } from "../lib/utils";
 // Simulation state store using React hooks
-const useUIStore = () => {
+export function useUIStore() {
   const [algorithm, setAlgorithm] = useState("Bacterial Foraging");
   const [numDrones, setNumDrones] = useState(30);
   const [speed, setSpeed] = useState(10);
@@ -19,6 +19,24 @@ const useUIStore = () => {
       .fill()
       .map(() => Array(GRID_SIZE).fill(0))
   );
+
+  const [params, setParams] = useState({
+    "Greedy Coverage": {
+      numDrones: 20,
+      speed: 10,
+      sensingRadius: 100,
+    },
+    "Bee Colony": {
+      numScouts: 10,
+      numForagers: 30,
+      searchRadius: 50,
+    },
+    "Bacterial Foraging": {
+      population: 50,
+      dispersalSteps: 15,
+      iteration: 0,
+    },
+  });
 
   return {
     algorithm,
@@ -43,6 +61,17 @@ const useUIStore = () => {
     setMapData,
     simLocked,
     setSimLocked,
+    params,
+    setParams,
   };
-};
-export default useUIStore;
+}
+
+export function updateParams(algorithm, setParams, key, value) {
+  setParams((prev) => ({
+    ...prev,
+    [algorithm]: {
+      ...prev[algorithm],
+      [key]: value,
+    },
+  }));
+}

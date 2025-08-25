@@ -15,8 +15,10 @@ import { Separator } from "components/ui/separator";
 import { Play, Pause, RotateCcw, Download, Upload } from "lucide-react";
 
 import { spawnDrones, clearHeatmap } from "@/src/hooks/useSimStore";
+import { updateParams } from "@/src/hooks/UseUIStore";
 
 import presetMaps from "@/src/lib/PresetMaps";
+
 // Control Panel Component
 const ControlPanel = ({ UIStore, onLoadPreset, onSaveMap, simStore }) => {
   const fileInputRef = useRef(null);
@@ -34,6 +36,11 @@ const ControlPanel = ({ UIStore, onLoadPreset, onSaveMap, simStore }) => {
           mapData.length > 0 &&
           Array.isArray(mapData[0])
         ) {
+          // ✅ ADDED: extra validation for 25x25
+          if (mapData.length !== 25 || mapData[0].length !== 25) {
+            alert("Map must be 25x25");
+            return;
+          }
           UIStore.setMapData(mapData);
         } else {
           alert("Invalid map format");
@@ -86,44 +93,178 @@ const ControlPanel = ({ UIStore, onLoadPreset, onSaveMap, simStore }) => {
           <CardTitle className="text-lg">Parameters</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label>Number of Drones: {UIStore.numDrones}</Label>
-            <Slider
-              value={[UIStore.numDrones]}
-              onValueChange={(value) => {
-                UIStore.setNumDrones(value[0]);
-                simStore.setDrones(spawnDrones(UIStore.numDrones));
-              }}
-              max={60}
-              min={15}
-              step={1}
-              className="w-full"
-            />
-          </div>
+          {UIStore.algorithm === "Greedy Coverage" && (
+            <>
+              <div className="space-y-2">
+                <Label>
+                  Number of Drones:{" "}
+                  {UIStore.params["Greedy Coverage"].numDrones}
+                </Label>
+                <Slider
+                  value={[UIStore.params["Greedy Coverage"].numDrones]}
+                  onValueChange={(value) =>
+                    updateParams(
+                      "Greedy Coverage",
+                      UIStore.setParams,
+                      "numDrones",
+                      value[0]
+                    )
+                  }
+                  max={60}
+                  min={15}
+                  step={1}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>Speed: {UIStore.speed}</Label>
-            <Slider
-              value={[UIStore.speed]}
-              onValueChange={(value) => UIStore.setSpeed(value[0])}
-              max={15}
-              min={5}
-              step={1}
-              className="w-full"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label>Speed: {UIStore.params["Greedy Coverage"].speed}</Label>
+                <Slider
+                  value={[UIStore.params["Greedy Coverage"].speed]}
+                  onValueChange={(value) =>
+                    updateParams(
+                      "Greedy Coverage",
+                      UIStore.setParams,
+                      "speed",
+                      value[0]
+                    )
+                  }
+                  max={15}
+                  min={5}
+                  step={1}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>Sensing Radius: {UIStore.sensingRadius}</Label>
-            <Slider
-              value={[UIStore.sensingRadius]}
-              onValueChange={(value) => UIStore.setSensingRadius(value[0])}
-              max={200}
-              min={50}
-              step={10}
-              className="w-full"
-            />
-          </div>
+              <div className="space-y-2">
+                <Label>
+                  Sensing Radius:{" "}
+                  {UIStore.params["Greedy Coverage"].sensingRadius}
+                </Label>
+                <Slider
+                  value={[UIStore.params["Greedy Coverage"].sensingRadius]}
+                  onValueChange={(value) =>
+                    updateParams(
+                      "Greedy Coverage",
+                      UIStore.setParams,
+                      "sensingRadius",
+                      value[0]
+                    )
+                  }
+                  max={200}
+                  min={50}
+                  step={10}
+                />
+              </div>
+            </>
+          )}
+
+          {UIStore.algorithm === "Bee Colony" && (
+            <>
+              <div className="space-y-2">
+                <Label>
+                  Number of Scouts: {UIStore.params["Bee Colony"].numScouts}
+                </Label>
+                <Slider
+                  value={[UIStore.params["Bee Colony"].numScouts]}
+                  onValueChange={(value) =>
+                    updateParams(
+                      "Bee Colony",
+                      UIStore.setParams,
+                      "numScouts",
+                      value[0]
+                    )
+                  }
+                  max={30}
+                  min={5}
+                  step={1}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Number of Foragers: {UIStore.params["Bee Colony"].numForagers}
+                </Label>
+                <Slider
+                  value={[UIStore.params["Bee Colony"].numForagers]}
+                  onValueChange={(value) =>
+                    updateParams(
+                      "Bee Colony",
+                      UIStore.setParams,
+                      "numForagers",
+                      value[0]
+                    )
+                  }
+                  max={50}
+                  min={10}
+                  step={1}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Search Radius: {UIStore.params["Bee Colony"].searchRadius}
+                </Label>
+                <Slider
+                  value={[UIStore.params["Bee Colony"].searchRadius]}
+                  onValueChange={(value) =>
+                    updateParams(
+                      "Bee Colony",
+                      UIStore.setParams,
+                      "searchRadius",
+                      value[0]
+                    )
+                  }
+                  max={100}
+                  min={10}
+                  step={5}
+                />
+              </div>
+            </>
+          )}
+
+          {UIStore.algorithm === "Bacterial Foraging" && (
+            <>
+              <div className="space-y-2">
+                <Label>
+                  Population: {UIStore.params["Bacterial Foraging"].population}
+                </Label>
+                <Slider
+                  value={[UIStore.params["Bacterial Foraging"].population]}
+                  onValueChange={(value) =>
+                    updateParams(
+                      "Bacterial Foraging",
+                      UIStore.setParams,
+                      "population",
+                      value[0]
+                    )
+                  }
+                  max={60}
+                  min={15}
+                  step={1}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Dispersal Steps:{" "}
+                  {UIStore.params["Bacterial Foraging"].dispersalSteps}
+                </Label>
+                <Slider
+                  value={[UIStore.params["Bacterial Foraging"].dispersalSteps]}
+                  onValueChange={(value) =>
+                    updateParams(
+                      "Bacterial Foraging",
+                      UIStore.setParams,
+                      "dispersalSteps",
+                      value[0]
+                    )
+                  }
+                  max={50}
+                  min={5}
+                  step={1}
+                />
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -134,29 +275,11 @@ const ControlPanel = ({ UIStore, onLoadPreset, onSaveMap, simStore }) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label htmlFor="trails">Show Trails</Label>
-            <Switch
-              id="trails"
-              checked={UIStore.showTrails}
-              onCheckedChange={UIStore.setShowTrails}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
             <Label htmlFor="heatmap">Show Coverage Heatmap</Label>
             <Switch
               id="heatmap"
               checked={UIStore.showHeatmap}
               onCheckedChange={UIStore.setShowHeatmap}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label htmlFor="sensing">Show Sensing Vector</Label>
-            <Switch
-              id="sensing"
-              checked={UIStore.showSensingVector}
-              onCheckedChange={UIStore.setShowSensingVector}
             />
           </div>
         </CardContent>
@@ -170,10 +293,12 @@ const ControlPanel = ({ UIStore, onLoadPreset, onSaveMap, simStore }) => {
         <CardContent className="space-y-3">
           <Button
             onClick={() => {
-              UIStore.setIsRunning(!UIStore.isRunning);
-              UIStore.setSimLocked(true);
-              if (!UIStore.simLocked)
+              if (!UIStore.isRunning) {
+                // ✅ CHANGED: Only lock + spawn when starting
                 simStore.setDrones(spawnDrones(UIStore.numDrones));
+                UIStore.setSimLocked(true);
+              }
+              UIStore.setIsRunning(!UIStore.isRunning);
             }}
             className="w-full"
             variant={UIStore.isRunning ? "destructive" : "default"}
@@ -195,7 +320,7 @@ const ControlPanel = ({ UIStore, onLoadPreset, onSaveMap, simStore }) => {
             onClick={() => {
               UIStore.setIsRunning(false);
               UIStore.setSimLocked(false);
-              simStore.setDrones(spawnDrones(UIStore.numDrones));
+              simStore.setDrones(spawnDrones(UIStore.numDrones)); // ✅ spawns fresh
               clearHeatmap(simStore);
             }}
             variant="outline"
