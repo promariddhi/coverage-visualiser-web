@@ -77,7 +77,7 @@ const ControlPanel = ({ UIStore, onLoadPreset, onSaveMap, simStore }) => {
                 <SelectItem value="Bacterial Foraging">
                   Bacterial Foraging
                 </SelectItem>
-                <SelectItem value="Bee Colony">Bee Colony</SelectItem>
+                {/*<SelectItem value="Bee Colony">Bee Colony</SelectItem>*/}
                 <SelectItem value="Greedy Coverage">Greedy Coverage</SelectItem>
               </SelectContent>
             </Select>
