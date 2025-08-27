@@ -30,7 +30,7 @@ const MapLayer = ({ mapData }) => {
       ref={canvasRef}
       width={CANVAS_SIZE}
       height={CANVAS_SIZE}
-      className="absolute top-9 left-0 w-full h-full pointer-events-none"
+      className="absolute top-7.5 left-0 w-full h-full pointer-events-none"
     />
   );
 };

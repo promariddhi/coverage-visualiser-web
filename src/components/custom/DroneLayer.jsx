@@ -22,7 +22,7 @@ const DroneLayer = ({ drones }) => {
       ref={canvasRef}
       width={CANVAS_SIZE}
       height={CANVAS_SIZE}
-      className="absolute top-9 left-0 w-full h-full pointer-events-none"
+      className="absolute top-0 left-0 w-full h-full pointer-events-none"
     />
   );
 };

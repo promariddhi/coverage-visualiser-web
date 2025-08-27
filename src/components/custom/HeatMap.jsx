@@ -46,7 +46,7 @@ const HeatmapOverlay = ({ visited, showMap }) => {
       ref={canvasRef}
       width={canvasSize}
       height={canvasSize}
-      className="absolute top-9 left-0 w-full h-full pointer-events-none"
+      className="absolute top-0 left-0 w-full h-full pointer-events-none"
     />
   ) : null;
 };
