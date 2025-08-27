@@ -53,8 +53,10 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
   const getCellFromPointer = (clientX, clientY) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
 
     const col = Math.floor(x / cellSize);
     const row = Math.floor(y / cellSize);
@@ -75,7 +77,7 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
   const handleMouseDown = (e) => {
     if (mapLocked) return;
     e.preventDefault();
-    const { row, col } = getCellFromPointer(e);
+    const { row, col } = getCellFromPointer(e.clientX, e.clientY);
     const newDrawMode = e.button === 2 ? 0 : 1;
     setDrawMode(newDrawMode);
     setIsDrawing(true);
@@ -85,7 +87,7 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
   const handleMouseMove = (e) => {
     if (mapLocked) return;
     if (!isDrawing) return;
-    const { row, col } = getCellFromPointer(e);
+    const { row, col } = getCellFromPointer(e.clientX, e.clientY);
     toggleCell(row, col, drawMode);
   };
 
