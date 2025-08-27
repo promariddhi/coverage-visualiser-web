@@ -50,11 +50,11 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
     drawGrid(ctx);
   }, [drawGrid]);
 
-  const getCellFromMouse = (e) => {
+  const getCellFromPointer = (clientX, clientY) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
 
     const col = Math.floor(x / cellSize);
     const row = Math.floor(y / cellSize);
@@ -75,8 +75,8 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
   const handleMouseDown = (e) => {
     if (mapLocked) return;
     e.preventDefault();
-    const { row, col } = getCellFromMouse(e);
-    const newDrawMode = e.button === 2 ? 0 : 1; // Right click = erase, left click = draw
+    const { row, col } = getCellFromPointer(e);
+    const newDrawMode = e.button === 2 ? 0 : 1;
     setDrawMode(newDrawMode);
     setIsDrawing(true);
     toggleCell(row, col, newDrawMode);
@@ -85,12 +85,48 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
   const handleMouseMove = (e) => {
     if (mapLocked) return;
     if (!isDrawing) return;
-    const { row, col } = getCellFromMouse(e);
+    const { row, col } = getCellFromPointer(e);
     toggleCell(row, col, drawMode);
   };
 
   const handleMouseUp = () => {
     setIsDrawing(false);
+  };
+
+  const longPressTimeout = useRef(null);
+
+  /*Touch Mode Handling*/
+  const handleTouchStart = (e) => {
+    if (mapLocked) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const { row, col } = getCellFromPointer(touch.clientX, touch.clientY);
+    const newDrawMode = 1; // mobile: always "draw" with finger
+    setDrawMode(newDrawMode);
+    setIsDrawing(true);
+    toggleCell(row, col, newDrawMode);
+
+    // timeout for long press detection for erase
+    longPressTimeout.current = setTimeout(() => {
+      setDrawMode(0);
+      toggleCell(row, col, 0);
+    }, 500); // 500ms hold
+  };
+
+  const handleTouchMove = (e) => {
+    if (mapLocked || !isDrawing) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const { row, col } = getCellFromPointer(touch.clientX, touch.clientY);
+    toggleCell(row, col, drawMode);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDrawing(false);
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
   };
 
   return (
@@ -109,6 +145,9 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         onContextMenu={(e) => e.preventDefault()}
       />
     </div>
