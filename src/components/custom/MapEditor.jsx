@@ -104,7 +104,7 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
         ref={canvasRef}
         width={canvasSize}
         height={canvasSize}
-        //className="border border-gray-300 cursor-crosshair"
+        className="w-full h-full"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
