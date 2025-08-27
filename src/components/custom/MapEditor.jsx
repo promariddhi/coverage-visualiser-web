@@ -96,6 +96,7 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
   };
 
   const longPressTimeout = useRef(null);
+  const movedDuringTouch = useRef(false);
 
   /*Touch Mode Handling*/
   const handleTouchStart = (e) => {
@@ -103,21 +104,28 @@ const MapEditor = ({ mapData, setMapData, mapLocked }) => {
     e.preventDefault();
     const touch = e.touches[0];
     const { row, col } = getCellFromPointer(touch.clientX, touch.clientY);
-    const newDrawMode = 1; // mobile: always "draw" with finger
-    setDrawMode(newDrawMode);
+
+    movedDuringTouch.current = false;
+    setDrawMode(1);
     setIsDrawing(true);
-    toggleCell(row, col, newDrawMode);
+    toggleCell(row, col, 1);
 
     // timeout for long press detection for erase
     longPressTimeout.current = setTimeout(() => {
-      setDrawMode(0);
+      if (!movedDuringTouch.current) {
+        setDrawMode(0);
+        if (navigator.vibrate) {
+          navigator.vibrate(30);
+        }
+      }
       toggleCell(row, col, 0);
-    }, 500); // 500ms hold
+    }, 500);
   };
 
   const handleTouchMove = (e) => {
     if (mapLocked || !isDrawing) return;
     e.preventDefault();
+    movedDuringTouch.current = true;
     const touch = e.touches[0];
     const { row, col } = getCellFromPointer(touch.clientX, touch.clientY);
     toggleCell(row, col, drawMode);
